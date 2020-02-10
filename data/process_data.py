@@ -3,6 +3,17 @@ import pandas as pd
 import sqlalchemy
 
 def load_data(messages_filepath, categories_filepath):
+    """ 
+    This function loads messages and category data and 
+    merges them together for later cleaning.
+    
+    Parameters: 
+    messages_filepath (string): File path of the messages.csv data file.
+    categories_filepath (string): File path of the catefories.csv data file.
+  
+    Returns: 
+    df (pandas dataframe): A pandas dataframe of the whole data. 
+    """
     
     # Load messages and categories files
     messages = pd.read_csv(messages_filepath)
@@ -11,18 +22,27 @@ def load_data(messages_filepath, categories_filepath):
     # Merge both into a single dataframe
     df = messages.merge(categories, on='id')
     
-    # Return the merged dataset
     return df
 
 def clean_data(df):
+    """ 
+    This function cleans and processes the message and category data.
     
+    Parameters: 
+    df (pandas dataframe): The pandas dataframe of the merged categories and messages data.
+  
+    Returns: 
+    df (pandas dataframe): A cleaned and processed pandas dataframe
+    """
+    
+    # Split category names and value
     categories = df.categories.str.split(pat=';', expand=True)
 
+    # Get category column names and renaming the columns of the dataframe
     category_colnames = categories.iloc[0].str.split(pat='-').str[0]
-
     categories.columns = category_colnames
     
-    ]:
+    # Get the values for each category column
     for column in categories:
         # set each value to be the last character of the string
         categories[column] = categories[column].str.split(pat='-').str[1]
@@ -30,19 +50,43 @@ def clean_data(df):
         # convert column from string to numeric
         categories[column] = pd.to_numeric(categories[column])
     
+    # Drop the first unprocessed categories column
     df.drop('categories', axis=1,inplace=True)
     
+    # Concat the dataframe with the newly processed categories
     df = pd.concat([df, categories], axis=1)
 
+    # Drop duplicates in the data
     df = df.drop_duplicates()
+    
+    return df
 
     
 def save_data(df, database_filename):
+    """ 
+    This function saves the data into a SQL database.
+    
+    Parameters: 
+    df (pandas dataframe): The pandas dataframe of the cleaned and processed data.
+    database_filename (string): The name of the database to create wth the data
+  
+    Returns: 
+    SQL Database
+    """
+    
+    # Create SQL engine
     engine = sqlalchemy.create_engine('sqlite:///{}.db'.format(database_filename))
+    
+    # Write to an SQL database
     df.to_sql(database_filename, engine, index=False)
 
 
 def main():
+    """ 
+    This is the main of the script. It runs all the functions above with some logging 
+    and error handling.
+    """
+    
     if len(sys.argv) == 4:
 
         messages_filepath, categories_filepath, database_filepath = sys.argv[1:]
