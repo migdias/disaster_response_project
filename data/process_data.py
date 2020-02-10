@@ -75,7 +75,7 @@ def save_data(df, database_filename):
     """
     
     # Create SQL engine
-    engine = sqlalchemy.create_engine('sqlite:///{}.db'.format(database_filename))
+    engine = sqlalchemy.create_engine('sqlite:///{}'.format(database_filename))
     
     # Write to an SQL database
     df.to_sql(database_filename, engine, index=False)
