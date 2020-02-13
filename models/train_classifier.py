@@ -36,12 +36,30 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 stop_words = stopwords.words('english')
 
 def get_score(model, test_y, pred_y, category_names):
-    """
-    DOCSTRING
+    """ 
+    Description: Prints the model accuracy and f1 metrics.
+  
+    This function compares the predictions against the actual labels and returns a classification report for each and every category label.
+
+    Parameters: 
+    model (obj): The NLP trained model
+    test_y (df): The actual labels of the test set
+    pred_y (df): The predicted labels of the test set
+    category_name (list): A list with the category names
+  
+    Returns: 
+    None
+    
+    Output:
+    A printed documentation regarding the accuracy and other metrics of the model, along with the best parameters from the GridSearchCV
+  
     """
     
+    # Initialize metric lists
     f1 = []
     acc = []
+    
+    # For each category print classification report and append metrics to list
     for i in range(test_y.shape[1]):
         print('################   ' + category_names[i] + '   ##################')
         print(classification_report(test_y.iloc[:,i], pred_y[:,i]))
@@ -52,18 +70,32 @@ def get_score(model, test_y, pred_y, category_names):
     print('#########################   FINAL RESULTS   ###########################')
     print('#######################################################################')
     
+    # Print F1-Macro metric (because it is the best one to deal with unbalanced data
+    # plus print the total accuracy and the best parameters of the model.
     print("The Mean score of F1-Macro is: {}".format(pd.Series(f1).mean()))
     print("The Mean accuracy score is: {}".format(pd.Series(acc).mean()))
     print("The Best Parameters for the model are: {}".format(model.best_params_))
 
 def load_data(database_filepath):
-    """
-    DOCSTRING
+    """ 
+    Description: Loads the Disaster Response dataset.
+  
+    This function loads the cleaned dataset from a database and sets the features and labels, as well as the category names, accordingly.
+
+    Parameters: 
+    database_filepath (string): The path of the database file to load.
+    
+    Returns: 
+    X (df): The features that are going to be used to train the model.
+    Y (df): The labels that are going to be predicted (MultiOutput Labels).
+    category_names (list): The names of each category to be predicted.
     """
     
     # load data from database
     engine = create_engine('sqlite:///{}'.format(database_filepath))
     df = pd.read_sql_table(database_filepath, con=engine)
+    
+    # Split into feature and label
     X = df["message"]
     Y = df[['related', 'request',
            'offer', 'aid_related', 'medical_help', 'medical_products',
@@ -75,14 +107,23 @@ def load_data(database_filepath):
            'storm', 'fire', 'earthquake', 'cold', 'other_weather',
            'direct_report']]
     
+    # Get category names
     category_names = Y.columns.values
        
     return X, Y, category_names
 
 
 def tokenize(text):
-    """
-    DOCSTRING
+    """ 
+    Description: Tokenizes a string of text.
+  
+    This function takes a string of text and executes and NLP processing job, normalizing, removing punctuation and stop words and other NLP tasks, resulting in single tokens.
+
+    Parameters: 
+    text (string): A single text string to be processed.
+    
+    Returns: 
+    clean_tokens (list): A list of clean word tokens.
     """
     
     # 1. Normalize
@@ -108,36 +149,84 @@ def tokenize(text):
 
 
 def build_model():
+    """ 
+    Description: Builds an optimized machine learning model.
+  
+    This function builds a machine learning model using a ML pipeline and GridSearchCV to get an optimized text classification model.
+
+    Parameters: 
+    None
     
+    Returns: 
+    cv (obj): An optimized machine learning model.
+    """
+    
+    # Create Pipeline 
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer(smooth_idf=False)),
         ('clf', MultiOutputClassifier(AdaBoostClassifier()))
     ])
     
+    # Setting parameters for grid search
     parameters = {
         'clf__estimator__learning_rate': (0.1, 0.5, 1.0, 1.5),
         'clf__estimator__n_estimators': [50, 100, 150, 200],
         'vect__ngram_range': ((1, 1), (1, 2), (1,3)),
-        'tfidf__sublinear_tf': (True, False)
     }
 
-    cv = GridSearchCV(pipeline, param_grid=parameters, cv=5, n_jobs=-1,verbose=1)
+    # Computing Grid Search
+    cv = GridSearchCV(pipeline, param_grid=parameters, cv=3, n_jobs=-1,verbose=1)
     
     return cv
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    """ 
+    Description: Predicts and evaluates a model.
+  
+    This function predicts labels for a testset and compares it to the actual real labels. It then prints the evaluation onto the terminal.
+
+    Parameters: 
+    model (obj): The trained machine learning model.
+    X_test (df): The test messages.
+    Y_test (df): The labels of those messages.
+    category_names (list): A list containing the category names.
+    
+    Returns: 
+    None
+    """
+    
+    # Getting Predictions
     y_pred = model.predict(X_test)
     
+    # Print out Evaluation
     get_score(model, Y_test, y_pred, category_names)
-    
-    
 
 def save_model(model, model_filepath):
+    """ 
+    Description: Saves a model.
+  
+    This function will save a machine learning model as a pickle file.
+
+    Parameters: 
+    model (obj): A trained machine learning model.
+    model_filepath (strins): The path to which the model will be saved.
+    
+    Returns: 
+    None
+    """
+    
+    # Saving model
     pkl.dump(model, open(model_filepath, 'wb'))
 
 
 def main():
+    """ 
+    Description: Trains and saves a machine learning model.
+  
+    This function will load and transform a dataset creating and saving a machine learning model.
+    """
+    
     if len(sys.argv) == 3:
         database_filepath, model_filepath = sys.argv[1:]
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))

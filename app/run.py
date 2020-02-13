@@ -2,36 +2,20 @@ import json
 import plotly
 import pandas as pd
 
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
-
 from flask import Flask
 from flask import render_template, request, jsonify
-from plotly.graph_objs import Bar
+from plotly.graph_objs import Bar, Pie
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
 
-
 app = Flask(__name__)
 
-def tokenize(text):
-    tokens = word_tokenize(text)
-    lemmatizer = WordNetLemmatizer()
-
-    clean_tokens = []
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
-
-    return clean_tokens
-
 # load data
-engine = create_engine('sqlite:///../data/YourDatabaseName.db')
-df = pd.read_sql_table('YourTableName', engine)
+engine = create_engine('sqlite:///../data/DisasterResponse.db')
+df = pd.read_sql_table('data/DisasterResponse.db', con=engine)
 
 # load model
-model = joblib.load("../models/your_model_name.pkl")
-
+model = joblib.load("../models/classifier.pkl")
 
 # index webpage displays cool visuals and receives user input text for model
 @app.route('/')
@@ -42,6 +26,22 @@ def index():
     # TODO: Below is an example - modify to extract data for your own visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
+    
+    genre_aid_sum = df[['medical_help', 'medical_products',
+       'search_and_rescue', 'security', 'military', 'child_alone', 'water',
+       'food', 'shelter', 'clothing', 'money', 'missing_people', 'refugees',
+       'death', 'other_aid', 'transport',
+       'buildings', 'electricity', 'tools', 'hospitals', 'shops',
+       'aid_centers', 'other_infrastructure', 'floods',
+       'storm', 'fire', 'earthquake', 'cold', 'other_weather']].sum().sort_values(ascending=False)
+    
+    aid_names = list(genre_aid_sum.index)
+    
+    request_offer = df[["request", "offer"]].sum()
+    request_offer_name = list(request_offer.index)
+    
+    related = df[["aid_related", "infrastructure_related", "weather_related"]].sum().sort_values(ascending=False)
+    related_name = list(related.index)
     
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
@@ -63,7 +63,50 @@ def index():
                     'title': "Genre"
                 }
             }
+        },
+        {
+            'data': [
+                Bar(
+                    x=aid_names,
+                    y=genre_aid_sum
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Message Topics',
+                'yaxis': {
+                    'title': "Sum"
+                },
+                'xaxis': {
+                    'title': "Message Aid Topic"
+                }
+            }
+        },
+        {
+            'data': [
+                Pie(
+                    labels=request_offer_name,
+                    values=request_offer
+                )
+            ],
+
+            'layout': {
+                'title': 'Offers and Requests'
+            }
+        },
+        {
+            'data': [
+                Pie(
+                    labels=related_name,
+                    values=related
+                )
+            ],
+
+            'layout': {
+                'title': 'Related Category',
+            }
         }
+        
     ]
     
     # encode plotly graphs in JSON
