@@ -33,12 +33,13 @@ Steps taken:
 │   └── ML\ Pipeline\ Preparation.ipynb
 └── models
     ├── classifier.pkl
-    └── train_classifier.py
+    ├── train_classifier.py
+    └── train_output.txt
 ```   
 
 - The **data** folder contains the database with the processed data (obtained by running the **process_data.py**), the data divided into categories and messages in a csv format and a python script to process the data (both the messages and labels).
 
-- The **models** folder contains a trained classifier that is obtained by running the **train_classifier.py**
+- The **models** folder contains a trained classifier that is obtained by running the **train_classifier.py**. It also has a **train_output.txt** which contains the printout of the model training, including best parameters.
 
 - The **app** folder contains html templates for the app and a python script **run.py** that creates and deploys the web app.
 
@@ -49,7 +50,8 @@ Steps taken:
 To run this web app, you can fork this repository or download it to your local machine and execute in the home folder:
 
 ```bash 
-python app/run.py
+cd app
+python run.py
 ```
 
 If you want to rerun the processing and training before deploying the app please run the following commands:
@@ -85,4 +87,9 @@ For this project you will need to have:
 
 ### 4. How does the Web App Works
 
-DO THIS WITH SOME SCREENSHOTS ABOUT IT
+After you run the run.py you can access the app by visiting http://0.0.0.0:3001/.
+
+You stumble upon a page with 4 graphs containing a little bit of information regarding the training data.
+
+You also have a text box to input a message. After you press classify you are routed too another page where this message will be classified into 36 categories. Try putting a message like "Please send help! Everything was destroyed by the earthquake and we have nowhere to live." See what the model classifies this into :)
+
