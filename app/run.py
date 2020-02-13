@@ -2,13 +2,28 @@ import json
 import plotly
 import pandas as pd
 
+from nltk.stem import WordNetLemmatizer
+from nltk.tokenize import word_tokenize
+
 from flask import Flask
 from flask import render_template, request, jsonify
 from plotly.graph_objs import Bar, Pie
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
 
+
 app = Flask(__name__)
+
+def tokenize(text):
+    tokens = word_tokenize(text)
+    lemmatizer = WordNetLemmatizer()
+
+    clean_tokens = []
+    for tok in tokens:
+        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
+        clean_tokens.append(clean_tok)
+
+    return clean_tokens
 
 # load data
 engine = create_engine('sqlite:///../data/DisasterResponse.db')
@@ -55,30 +70,42 @@ def index():
             ],
 
             'layout': {
+                'titlefont' : {
+                        'color':'grey',
+                        'size':'18',
+                    },
                 'title': 'Distribution of Message Genres',
                 'yaxis': {
                     'title': "Count"
                 },
                 'xaxis': {
-                    'title': "Genre"
+                    'title': "Genre",
                 }
+                
             }
         },
         {
             'data': [
                 Bar(
                     x=aid_names,
-                    y=genre_aid_sum
-                )
+                    y=genre_aid_sum                )
             ],
 
             'layout': {
                 'title': 'Distribution of Message Topics',
+                'titlefont' : {
+                        'color':'grey',
+                        'size':'18',
+                    },
                 'yaxis': {
                     'title': "Sum"
                 },
                 'xaxis': {
-                    'title': "Message Aid Topic"
+                    'tickangle': '-45',
+                    'tickfont' : {
+                        'size':'8',
+                    },
+
                 }
             }
         },
@@ -86,25 +113,42 @@ def index():
             'data': [
                 Pie(
                     labels=request_offer_name,
-                    values=request_offer
+                    values=request_offer,
+                    showlegend=False,
+                    textinfo="label+percent",
+                    textposition='outside'
                 )
+                
             ],
 
             'layout': {
+                'titlefont' : {
+                        'color':'grey',
+                        'size':'18',
+                    },
                 'title': 'Offers and Requests'
+          
             }
         },
         {
             'data': [
                 Pie(
                     labels=related_name,
-                    values=related
-                )
+                    values=related,
+                    showlegend=False,
+                    textinfo="label+percent",
+                    textposition='outside'
+                ),
             ],
-
             'layout': {
+                'titlefont' : {
+                        'color':'grey',
+                        'size':'18',
+                    },
                 'title': 'Related Category',
             }
+
+
         }
         
     ]
