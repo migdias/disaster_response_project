@@ -18,23 +18,23 @@ Steps taken:
 ```bash
 ├── README.md
 ├── app
-│   ├── run.py
-│   └── templates
-│       ├── go.html
-│       └── master.html
+│   ├── run.py # runs the web app
+│   └── templates 
+│       ├── go.html # classificaton page
+│       └── master.html # home pagee with visualisations
 ├── data
-│   ├── DisasterResponse.db
-│   ├── disaster_categories.csv
-│   ├── disaster_messages.csv
-│   └── process_data.py
+│   ├── DisasterResponse.db # database with clean data
+│   ├── disaster_categories.csv # category dataset
+│   ├── disaster_messages.csv # messages dataset
+│   └── process_data.py # process and clean data script
 ├── jupyter-notebooks
-│   ├── DisasterResponse.db
-│   ├── ETL\ Pipeline\ Preparation.ipynb
-│   └── ML\ Pipeline\ Preparation.ipynb
+│   ├── DisasterResponse.db # database with clean data for the notebooks
+│   ├── ETL\ Pipeline\ Preparation.ipynb # ETL notebook
+│   └── ML\ Pipeline\ Preparation.ipynb # ML notebook
 └── models
-    ├── classifier.pkl
-    ├── train_classifier.py
-    └── train_output.txt
+    ├── classifier.pkl # model
+    ├── train_classifier.py # model training script
+    └── train_output.txt # model training output
 ```   
 
 - The **data** folder contains the database with the processed data (obtained by running the **process_data.py**), the data divided into categories and messages in a csv format and a python script to process the data (both the messages and labels).
